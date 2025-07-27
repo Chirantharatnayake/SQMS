@@ -1,0 +1,98 @@
+package com.example.queuemanagmentsystem
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.queuemanagementapp.ui.screens.AdminScreen
+import com.example.queuemanagementapp.ui.screens.StaffScreen
+import com.example.queuemanagmentsystem.pages.*
+import com.example.queuemanagmentsystem.ui.theme.QueueManagmentSystemTheme
+import com.google.firebase.FirebaseApp
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        FirebaseApp.initializeApp(this)
+        enableEdgeToEdge()
+
+        setContent {
+            QueueManagmentSystemTheme {
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    AppNavigator()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AppNavigator() {
+    val navController = rememberNavController()
+
+    NavHost(navController = navController, startDestination = "register") {
+
+        //  Register
+        composable("register") {
+            RegisterScreen(
+                navToLogin = { navController.navigate("login") },
+                navToAdminLogin = { navController.navigate("admin_login") }
+            )
+        }
+
+        //  Login
+        composable("login") {
+            LoginScreen(
+                navToRegister = { navController.navigate("register") },
+                navToLanding = { navController.navigate("landing") }
+            )
+        }
+
+        //  Admin Login
+        composable("admin_login") {
+            AdminLoginScreen(
+                navController = navController,
+                onBack = { navController.navigate("register") }
+            )
+        }
+
+        //  Admin Home
+        composable("admin_home") {
+            AdminScreen()
+        }
+
+        //  Staff Home
+        composable("staff_home") {
+            StaffScreen()
+        }
+
+        //  Customer Landing Page
+        composable("landing") {
+            LandingScreen(navController = navController)
+        }
+
+        //  Appointment Screen with param + navController
+        composable(
+            route = "appointment/{serviceName}",
+            arguments = listOf(navArgument("serviceName") {
+                type = NavType.StringType
+            })
+        ) { backStackEntry ->
+            val serviceName = backStackEntry.arguments?.getString("serviceName") ?: "Account Opening"
+            AppointmentScreen(
+                navController = navController,
+                selectedService = serviceName
+            )
+        }
+    }
+}
