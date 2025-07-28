@@ -46,7 +46,7 @@ fun LandingScreen(navController: NavController) {
     val auth = FirebaseAuth.getInstance()
     val firestore = FirebaseFirestore.getInstance()
 
-    // 🔄 Fetch Username from Firestore
+    // Fetch Username from Firestore
     LaunchedEffect(Unit) {
         val user = auth.currentUser
         if (user != null) {
@@ -63,7 +63,7 @@ fun LandingScreen(navController: NavController) {
         }
     }
 
-    // 🔁 Banner animation
+    // Banner animation
     LaunchedEffect(Unit) {
         while (true) {
             delay(5000)
@@ -93,7 +93,7 @@ fun LandingScreen(navController: NavController) {
                         .size(100.dp)
                 )
 
-                // 👋 Greet the user
+                // Greet the user
                 Text(
                     text = "Hello, $username",
                     fontSize = 20.sp,
@@ -132,7 +132,6 @@ fun LandingScreen(navController: NavController) {
 
                 val services = listOf(
                     "Account Opening" to R.drawable.addaccount,
-                    "Manager Meetings" to R.drawable.manager,
                     "Loan Consultations" to R.drawable.loan,
                     "Bank Card Services" to R.drawable.creditcard,
                     "Locker Access" to R.drawable.locker,
@@ -150,7 +149,7 @@ fun LandingScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
-            // ✅ Bottom Navigation Bar
+            // Bottom Navigation Bar
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)

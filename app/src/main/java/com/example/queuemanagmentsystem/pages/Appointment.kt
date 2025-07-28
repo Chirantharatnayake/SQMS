@@ -74,7 +74,7 @@ fun AppointmentScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = 80.dp)
         ) {
-            // 🔙 Back
+            //  Back
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -99,7 +99,7 @@ fun AppointmentScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // 📸 Banner (adjusted height)
+            //  Banner (adjusted height)
             Image(
                 painter = painterResource(id = R.drawable.appointmentimg),
                 contentDescription = "Banner",
@@ -112,7 +112,7 @@ fun AppointmentScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // 📝 Selected Service
+            //  Selected Service
             Text("Selected Service", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = red)
             Text(
                 text = selectedService,
@@ -125,7 +125,7 @@ fun AppointmentScreen(
                     .padding(16.dp)
             )
 
-            // 🏢 Select Branch
+            //  Select Branch
             Spacer(modifier = Modifier.height(16.dp))
             Text("Select Branch", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = red)
 
@@ -170,7 +170,7 @@ fun AppointmentScreen(
                 }
             }
 
-            // 📅 Date Picker
+            //  Date Picker
             Spacer(modifier = Modifier.height(16.dp))
             Text("Select Date", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = red)
 
@@ -217,7 +217,7 @@ fun AppointmentScreen(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            // ⏰ Time Slots
+            //  Time Slots
             Text("Available Time Slots", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = red)
 
             Column {
@@ -260,7 +260,7 @@ fun AppointmentScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // ✅ Confirm Button
+            //  Confirm Button
             Button(
                 onClick = {
                     if (selectedSlot != null && selectedBranch.isNotEmpty()) {
@@ -285,7 +285,7 @@ fun AppointmentScreen(
             Spacer(modifier = Modifier.height(24.dp))
         }
 
-        // 🔽 Bottom Navigation (optional)
+        //  Bottom Navigation (optional)
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
