@@ -41,9 +41,9 @@ fun StaffScreen() {
             .background(Color.White)
             .padding(horizontal = 16.dp)
     ) {
-        Spacer(modifier = Modifier.height(48.dp)) // ⬅️ Top spacing increased to avoid camera notch
+        Spacer(modifier = Modifier.height(48.dp)) //
 
-        // Logo
+
         Image(
             painter = painterResource(id = R.drawable.bank_logo_rmv),
             contentDescription = "People's Bank Logo",
