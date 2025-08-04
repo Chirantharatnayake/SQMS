@@ -42,7 +42,6 @@ fun AppNavigator() {
 
     NavHost(navController = navController, startDestination = "register") {
 
-        //  Register
         composable("register") {
             RegisterScreen(
                 navToLogin = { navController.navigate("login") },
@@ -50,7 +49,6 @@ fun AppNavigator() {
             )
         }
 
-        //  Login
         composable("login") {
             LoginScreen(
                 navToRegister = { navController.navigate("register") },
@@ -58,7 +56,6 @@ fun AppNavigator() {
             )
         }
 
-        //  Admin Login
         composable("admin_login") {
             AdminLoginScreen(
                 navController = navController,
@@ -66,33 +63,32 @@ fun AppNavigator() {
             )
         }
 
-        //  Admin Home
         composable("admin_home") {
             AdminScreen()
         }
 
-        //  Staff Home
         composable("staff_home") {
             StaffScreen()
         }
 
-        //  Customer Landing Page
         composable("landing") {
-            LandingScreen(navController = navController)
+            LandingScreen(navController)
         }
 
-        //  Appointment Screen with param + navController
         composable(
-            route = "appointment/{serviceName}",
-            arguments = listOf(navArgument("serviceName") {
-                type = NavType.StringType
-            })
+            route = "appointment/{service}",
+            arguments = listOf(navArgument("service") { type = NavType.StringType })
         ) { backStackEntry ->
-            val serviceName = backStackEntry.arguments?.getString("serviceName") ?: "Account Opening"
-            AppointmentScreen(
-                navController = navController,
-                selectedService = serviceName
-            )
+            val service = backStackEntry.arguments?.getString("service") ?: "Service"
+            AppointmentScreen(navController, service)
+        }
+
+        composable("slots") {
+            SlotScreen(navController)
+        }
+
+        composable("account") {
+            CustomerProfileScreen(navController)
         }
     }
 }
