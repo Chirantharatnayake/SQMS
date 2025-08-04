@@ -46,7 +46,6 @@ fun LandingScreen(navController: NavController) {
     val auth = FirebaseAuth.getInstance()
     val firestore = FirebaseFirestore.getInstance()
 
-    // Fetch Username from Firestore
     LaunchedEffect(Unit) {
         val user = auth.currentUser
         if (user != null) {
@@ -63,7 +62,6 @@ fun LandingScreen(navController: NavController) {
         }
     }
 
-    // Banner animation
     LaunchedEffect(Unit) {
         while (true) {
             delay(5000)
@@ -93,7 +91,6 @@ fun LandingScreen(navController: NavController) {
                         .size(100.dp)
                 )
 
-                // Greet the user
                 Text(
                     text = "Hello, $username",
                     fontSize = 20.sp,
@@ -149,15 +146,17 @@ fun LandingScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
-            // Bottom Navigation Bar
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-            ) {
+            Box(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()) {
                 BottomNavBar(
                     selectedTab = selectedTab,
-                    onTabSelected = { selectedTab = it },
+                    onTabSelected = { tab ->
+                        selectedTab = tab
+                        when (tab) {
+                            "Home" -> navController.navigate("landing")
+                            "Slots" -> navController.navigate("slots")
+                            "Account" -> navController.navigate("account")
+                        }
+                    },
                     yellow = yellow,
                     red = red
                 )
