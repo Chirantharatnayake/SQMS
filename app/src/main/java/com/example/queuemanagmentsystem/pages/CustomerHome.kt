@@ -129,10 +129,9 @@ fun LandingScreen(navController: NavController) {
 
                 val services = listOf(
                     "Account Opening" to R.drawable.addaccount,
-                    "Loan Consultations" to R.drawable.loan,
+                    "Loan Consultation" to R.drawable.loan,
                     "Bank Card Services" to R.drawable.creditcard,
                     "Locker Access" to R.drawable.locker,
-                    "Complaint Resolution" to R.drawable.complain
                 )
 
                 Column {
