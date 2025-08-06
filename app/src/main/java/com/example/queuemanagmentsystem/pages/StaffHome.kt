@@ -1,127 +1,414 @@
 package com.example.queuemanagementapp.ui.screens
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import android.widget.Toast
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.queuemanagmentsystem.R //
+import androidx.navigation.NavController
+import com.example.queuemanagmentsystem.R
+import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
 data class Appointment(
-    val name: String,
-    val service: String,
-    val date: String,
-    val time: String
+    val id: String = "",
+    val service: String = "",
+    val date: String = "",
+    val time: String = "",
+    val token: String = "",
+    val customerUid: String = "",
+    val branch: String = "",
+    val staffName: String = "",
+    val branchName: String = "",
+    val orderId: String = ""
+)
+
+data class StaffMember(
+    val id: String = "",
+    val staffName: String = "",
+    val email: String = "",
+    val branchCode: String = "",
+    val serviceType: String = ""
 )
 
 @Composable
-fun StaffScreen() {
-    val yellow = Color(0xFFF9A825)
-    val red = Color(0xFFC62828)
-
-    val appointments = listOf(
-        Appointment("Afzal Sheik", "Account Opening", "July 30", "10:00 AM"),
-        Appointment("Binuka Lewke", "Loan Consultation", "August 1", "02:00 PM"),
-        Appointment("Chirantha Ratnayake", "Card Services", "August 2", "11:30 AM")
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(horizontal = 16.dp)
+fun AppointmentCardStyled(
+    name: String,
+    phone: String,
+    appointment: Appointment,
+    yellow: Color,
+    red: Color,
+    green: Color,
+    isCompleted: Boolean = false,
+    onCancel: (Appointment) -> Unit = {},
+    onComplete: (Appointment) -> Unit = {},
+    onDeleteCompleted: (Appointment) -> Unit = {}
+) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3E0)),
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Spacer(modifier = Modifier.height(48.dp)) //
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = name, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = red)
+                    Text(text = "Phone: $phone", fontSize = 14.sp, color = Color.DarkGray)
+                }
+                Card(colors = CardDefaults.cardColors(containerColor = green), shape = RoundedCornerShape(8.dp)) {
+                    Text(
+                        text = "Token: ${appointment.token}",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+            }
 
+            Spacer(modifier = Modifier.height(8.dp))
+            Divider(color = Color.Gray.copy(alpha = 0.3f))
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Image(
-            painter = painterResource(id = R.drawable.bank_logo_rmv),
-            contentDescription = "People's Bank Logo",
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .height(60.dp)
-        )
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Column {
+                    Text("Service", fontSize = 12.sp, color = Color.Gray)
+                    Text(appointment.service, fontSize = 14.sp)
+                }
+                Column {
+                    Text("Date", fontSize = 12.sp, color = Color.Gray)
+                    Text(appointment.date, fontSize = 14.sp)
+                }
+                Column {
+                    Text("Time", fontSize = 12.sp, color = Color.Gray)
+                    Text(appointment.time, fontSize = 14.sp)
+                }
+            }
 
-        Spacer(modifier = Modifier.height(12.dp))
+            if (appointment.orderId.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text("Order ID: ${appointment.orderId}", fontSize = 12.sp, color = Color.Gray)
+            }
 
-        // Welcome Text
-        Text(
-            text = "Hello, Staff",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            color = red,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Section Title
-        Text(
-            text = "Customer Appointments",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.DarkGray
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Appointment List
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(bottom = 16.dp)
-        ) {
-            items(appointments) { appointment ->
-                AppointmentCardStyled(appointment, yellow, red)
+            if (!isCompleted) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = { onComplete(appointment) },
+                        colors = ButtonDefaults.buttonColors(containerColor = green),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Complete", color = Color.White)
+                    }
+                    OutlinedButton(
+                        onClick = { onCancel(appointment) },
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = red),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Cancel")
+                    }
+                }
+            } else {
+                Button(
+                    onClick = { onDeleteCompleted(appointment) },
+                    colors = ButtonDefaults.buttonColors(containerColor = red),
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text("Delete", color = Color.White)
+                }
             }
         }
     }
 }
 
 @Composable
-fun AppointmentCardStyled(appointment: Appointment, yellow: Color, red: Color) {
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3E0)),
-        modifier = Modifier.fillMaxWidth()
+fun StaffBottomNavBar(
+    selectedTab: String,
+    onTabSelected: (String) -> Unit
+) {
+    val yellow = Color(0xFFF9A825)
+    val red = Color(0xFFC62828)
+
+    val items = listOf(
+        Triple("Home", Icons.Default.Home, "Home"),
+        Triple("Account", Icons.Default.AccountCircle, "Account")
+    )
+
+    Surface(
+        tonalElevation = 8.dp,
+        shadowElevation = 16.dp,
+        color = yellow,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(72.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = appointment.name,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = red
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            items.forEach { (key, icon, label) ->
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .clickable { onTabSelected(key) }
+                        .fillMaxHeight()
+                        .padding(top = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = label,
+                        tint = if (selectedTab == key) red else Color.DarkGray,
+                        modifier = Modifier.size(26.dp)
+                    )
+                    Text(
+                        text = label,
+                        fontSize = 12.sp,
+                        color = if (selectedTab == key) red else Color.DarkGray,
+                        fontWeight = if (selectedTab == key) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun StaffScreen(staffName: String, navController: NavController) {
+    val context = LocalContext.current
+    val firestore = FirebaseFirestore.getInstance()
+    val yellow = Color(0xFFF9A825)
+    val red = Color(0xFFC62828)
+    val green = Color(0xFF2E7D32)
+
+    var currentStaff by remember { mutableStateOf<StaffMember?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+    var pendingLookups by remember { mutableStateOf(0) }
+    val staffAppointments = remember { mutableStateListOf<Appointment>() }
+    val completedAppointments = remember { mutableStateListOf<Appointment>() }
+    val customerDetailsMap = remember { mutableStateMapOf<String, Pair<String, String>>() }
+
+    fun cancelAppointment(appt: Appointment) {
+        firestore.collection("appointments").document(appt.id).delete().addOnSuccessListener {
+            staffAppointments.remove(appt)
+
+            val customerUid = appt.customerUid
+            if (customerUid.isNotEmpty()) {
+                firestore.collection("notifications").add(
+                    mapOf(
+                        "uid" to customerUid,
+                        "message" to "Your appointment on ${appt.date} at ${appt.time} has been canceled by staff.",
+                        "timestamp" to Timestamp.now()
+                    )
+                )
+            }
+
+            Toast.makeText(context, "Appointment canceled", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun completeAppointment(appt: Appointment) {
+        val completedData = hashMapOf(
+            "uid" to appt.customerUid,
+            "orderId" to appt.orderId,
+            "token" to appt.token,
+            "branch" to appt.branch,
+            "branchName" to appt.branchName,
+            "date" to appt.date,
+            "slot" to appt.time,
+            "service" to appt.service,
+            "staffName" to appt.staffName,
+            "timestamp" to System.currentTimeMillis()
+        )
+
+        firestore.collection("completed_appointments").add(completedData).addOnSuccessListener {
+            firestore.collection("appointments").document(appt.id).delete().addOnSuccessListener {
+                staffAppointments.remove(appt)
+                completedAppointments.add(appt)
+                Toast.makeText(context, "Marked as complete", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    fun deleteCompleted(appt: Appointment) {
+        firestore.collection("completed_appointments").document(appt.id).delete().addOnSuccessListener {
+            completedAppointments.remove(appt)
+            Toast.makeText(context, "Deleted from completed bookings", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun loadAppointments(staff: StaffMember) {
+        staffAppointments.clear()
+        completedAppointments.clear()
+        customerDetailsMap.clear()
+        isLoading = true
+
+        firestore.collection("appointments")
+            .whereEqualTo("staffName", staff.staffName)
+            .get().addOnSuccessListener { docs ->
+                pendingLookups = docs.size()
+                for (doc in docs) {
+                    val appt = doc.toObject(Appointment::class.java).copy(id = doc.id)
+                    staffAppointments.add(appt)
+                    val uid = appt.customerUid
+                    if (uid.isNotEmpty()) {
+                        firestore.collection("users").document(uid).get()
+                            .addOnSuccessListener { userDoc ->
+                                customerDetailsMap[uid] = Pair(
+                                    userDoc.getString("username") ?: "Unknown",
+                                    userDoc.getString("phone") ?: "N/A"
+                                )
+                            }.addOnCompleteListener {
+                                pendingLookups--
+                                if (pendingLookups <= 0) isLoading = false
+                            }
+                    } else pendingLookups--
+                }
+                if (pendingLookups == 0) isLoading = false
+            }
+
+        firestore.collection("completed_appointments")
+            .whereEqualTo("staffName", staff.staffName)
+            .get().addOnSuccessListener { docs ->
+                for (doc in docs) {
+                    val appt = doc.toObject(Appointment::class.java).copy(id = doc.id)
+                    completedAppointments.add(appt)
+                }
+            }
+    }
+
+    LaunchedEffect(Unit) {
+        try {
+            val staffQuery = firestore.collection("staff").whereEqualTo("staffName", staffName).get().await()
+            if (!staffQuery.isEmpty) {
+                val staffDoc = staffQuery.documents.first()
+                val staff = StaffMember(
+                    id = staffDoc.getString("id") ?: "",
+                    staffName = staffDoc.getString("staffName") ?: "",
+                    email = staffDoc.getString("email") ?: "",
+                    branchCode = staffDoc.getString("branchCode") ?: "",
+                    serviceType = staffDoc.getString("serviceType") ?: ""
+                )
+                currentStaff = staff
+                loadAppointments(staff)
+            } else {
+                Toast.makeText(context, "Staff not found", Toast.LENGTH_SHORT).show()
+                isLoading = false
+            }
+        } catch (e: Exception) {
+            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+            isLoading = false
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 72.dp)
+                .background(Color.White)
+                .padding(horizontal = 16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(48.dp))
+
+            Image(
+                painter = painterResource(id = R.drawable.bank_logo_rmv),
+                contentDescription = "Logo",
+                modifier = Modifier.align(Alignment.CenterHorizontally).height(60.dp)
             )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "Service: ${appointment.service}", fontSize = 14.sp)
-            Text(text = "Date: ${appointment.date}", fontSize = 14.sp)
-            Text(text = "Time: ${appointment.time}", fontSize = 14.sp)
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Button(
-                    onClick = { /* TODO: Reschedule */ },
-                    colors = ButtonDefaults.buttonColors(containerColor = yellow)
-                ) {
-                    Text("Reschedule")
+            currentStaff?.let { staff ->
+                Text("Hello, ${staff.staffName}", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = red, modifier = Modifier.align(Alignment.CenterHorizontally))
+                Text(staff.serviceType, fontSize = 14.sp, color = Color.Gray, modifier = Modifier.align(Alignment.CenterHorizontally))
+                Text("Branch: ${staff.branchCode}", fontSize = 14.sp, color = Color.Gray, modifier = Modifier.align(Alignment.CenterHorizontally))
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text("Your Appointments", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = Color.DarkGray)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (isLoading) {
+                Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = red)
                 }
-                OutlinedButton(
-                    onClick = { /* TODO: Cancel */ },
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = red)
-                ) {
-                    Text("Cancel")
+            } else if (staffAppointments.isEmpty()) {
+                Text("No upcoming appointments.", color = Color.Gray, modifier = Modifier.align(Alignment.CenterHorizontally))
+            } else {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
+                    items(staffAppointments) { appt ->
+                        val customer = customerDetailsMap[appt.customerUid]
+                        AppointmentCardStyled(
+                            name = customer?.first ?: "Loading...",
+                            phone = customer?.second ?: "Loading...",
+                            appointment = appt,
+                            yellow = yellow,
+                            red = red,
+                            green = green,
+                            onCancel = { cancelAppointment(appt) },
+                            onComplete = { completeAppointment(appt) }
+                        )
+                    }
                 }
             }
+
+            if (completedAppointments.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(24.dp))
+                Text("Completed Bookings", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = Color.DarkGray)
+                Spacer(modifier = Modifier.height(12.dp))
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
+                    items(completedAppointments) { appt ->
+                        AppointmentCardStyled(
+                            name = customerDetailsMap[appt.customerUid]?.first ?: "Completed",
+                            phone = customerDetailsMap[appt.customerUid]?.second ?: "N/A",
+                            appointment = appt,
+                            yellow = yellow,
+                            red = red,
+                            green = green,
+                            isCompleted = true,
+                            onDeleteCompleted = { deleteCompleted(appt) }
+                        )
+                    }
+                }
+            }
+        }
+
+        Box(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()) {
+            StaffBottomNavBar(
+                selectedTab = "Home",
+                onTabSelected = { tab ->
+                    when (tab) {
+                        "Home" -> navController.navigate("staff_home/$staffName")
+                        "Account" -> navController.navigate("staff_account/$staffName")
+                    }
+                }
+            )
         }
     }
 }
