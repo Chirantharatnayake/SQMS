@@ -178,8 +178,10 @@ fun AdminLoginScreen(navController: NavHostController, onBack: () -> Unit) {
                                     if (user.getString("password") == password) {
                                         Toast.makeText(context, "Admin Login Successful", Toast.LENGTH_SHORT).show()
                                         navController.navigate("admin_home")
+                                        return@addOnSuccessListener
                                     } else {
                                         Toast.makeText(context, "Incorrect Password", Toast.LENGTH_SHORT).show()
+                                        return@addOnSuccessListener
                                     }
                                 } else {
                                     Toast.makeText(context, "Admin not found", Toast.LENGTH_SHORT).show()
@@ -201,10 +203,14 @@ fun AdminLoginScreen(navController: NavHostController, onBack: () -> Unit) {
                                 if (!result.isEmpty) {
                                     val user = result.documents[0]
                                     if (user.getString("password") == password) {
+                                        val staffName = user.getString("staffName") ?: "Unknown"
+                                        Log.d("LOGIN_SUCCESS", "Staff Login Successful - Name: $staffName, ID: $adminOrStaffId, Branch: $branchCode")
                                         Toast.makeText(context, "Staff Login Successful", Toast.LENGTH_SHORT).show()
-                                        navController.navigate("staff_home")
+                                        navController.navigate("staff_home/${staffName}")
+                                        return@addOnSuccessListener
                                     } else {
                                         Toast.makeText(context, "Incorrect Password", Toast.LENGTH_SHORT).show()
+                                        return@addOnSuccessListener
                                     }
                                 } else {
                                     Toast.makeText(context, "Staff not found or incorrect branch", Toast.LENGTH_SHORT).show()
