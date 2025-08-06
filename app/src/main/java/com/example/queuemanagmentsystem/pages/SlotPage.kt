@@ -2,13 +2,13 @@ package com.example.queuemanagmentsystem.pages
 
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,8 +36,14 @@ fun SlotScreen(navController: NavController) {
     var selectedDocId by remember { mutableStateOf("") }
     var selectedAppt by remember { mutableStateOf<Map<String, Any>?>(null) }
 
+    val notifications = remember { mutableStateListOf<String>() }
+    var showNotification by remember { mutableStateOf(false) }
+
+    // ✅ Load bookings + notifications
     LaunchedEffect(Unit) {
         val uid = auth.currentUser?.uid ?: return@LaunchedEffect
+
+        // Load appointments
         firestore.collection("appointments")
             .whereEqualTo("uid", uid)
             .get()
@@ -47,6 +54,22 @@ fun SlotScreen(navController: NavController) {
                 }
                 isLoading = false
             }
+
+        // Always check for latest notification
+        firestore.collection("notifications")
+            .whereEqualTo("uid", uid)
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .limit(1)
+            .get()
+            .addOnSuccessListener { notifDocs ->
+                val latest = notifDocs.firstOrNull()
+                val msg = latest?.getString("message")
+                if (!msg.isNullOrEmpty()) {
+                    notifications.clear()
+                    notifications.add(msg)
+                    showNotification = true
+                }
+            }
     }
 
     Scaffold(
@@ -56,6 +79,29 @@ fun SlotScreen(navController: NavController) {
                 navigationIcon = {
                     IconButton(onClick = { navController.navigate("landing") }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    }
+                },
+                actions = {
+                    Box(modifier = Modifier.padding(end = 16.dp)) {
+                        IconButton(onClick = {
+                            navController.navigate("notifications")
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Notifications,
+                                contentDescription = "Notifications",
+                                tint = Color.White
+                            )
+                        }
+
+                        if (showNotification) {
+                            Box(
+                                modifier = Modifier
+                                    .size(10.dp)
+                                    .background(Color.Red, shape = RoundedCornerShape(50))
+                                    .align(Alignment.TopEnd)
+                                    .offset(x = (-4).dp, y = 4.dp)
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -74,13 +120,34 @@ fun SlotScreen(navController: NavController) {
             if (isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else if (bookings.isEmpty()) {
-                Text(
-                    text = "No Appointments Yet",
-                    color = Color.Gray,
-                    fontSize = 18.sp,
+                Column(
                     modifier = Modifier.align(Alignment.Center),
-                    fontWeight = FontWeight.SemiBold
-                )
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "No Appointments Yet",
+                        color = Color.Gray,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    if (showNotification && notifications.isNotEmpty()) {
+                        Card(
+                            modifier = Modifier.padding(16.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFE0E0))
+                        ) {
+                            Text(
+                                text = notifications.first(),
+                                modifier = Modifier.padding(16.dp),
+                                fontSize = 14.sp,
+                                color = Color.Red,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
             } else {
                 LazyColumn(
                     modifier = Modifier
@@ -99,6 +166,7 @@ fun SlotScreen(navController: NavController) {
                                 Text("Branch: ${appt["branchName"]}", fontSize = 14.sp, color = Color.DarkGray)
                                 Text("Date: ${appt["date"]}", fontSize = 14.sp, color = Color.DarkGray)
                                 Text("Time: ${appt["slot"]}", fontSize = 14.sp, color = Color.DarkGray)
+                                Text("Staff: ${appt["staffName"]}", fontSize = 14.sp, color = Color.DarkGray)
                                 Text("Token: ${appt["token"]}", fontSize = 14.sp, color = Color.DarkGray)
                                 Text("OrderID: ${appt["orderId"]}", fontSize = 14.sp, color = Color.DarkGray)
                                 Spacer(Modifier.height(8.dp))
@@ -147,3 +215,4 @@ fun SlotScreen(navController: NavController) {
         }
     }
 }
+
