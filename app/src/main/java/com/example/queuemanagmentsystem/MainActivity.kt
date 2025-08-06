@@ -15,6 +15,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.queuemanagementapp.ui.screens.AdminScreen
 import com.example.queuemanagementapp.ui.screens.StaffScreen
+import com.example.queuemanagementapp.ui.screens.StaffAccountScreen
 import com.example.queuemanagmentsystem.pages.*
 import com.example.queuemanagmentsystem.ui.theme.QueueManagmentSystemTheme
 import com.google.firebase.FirebaseApp
@@ -42,6 +43,7 @@ fun AppNavigator() {
 
     NavHost(navController = navController, startDestination = "register") {
 
+        // ✅ Register screen
         composable("register") {
             RegisterScreen(
                 navToLogin = { navController.navigate("login") },
@@ -49,6 +51,7 @@ fun AppNavigator() {
             )
         }
 
+        // ✅ Login screen
         composable("login") {
             LoginScreen(
                 navToRegister = { navController.navigate("register") },
@@ -56,6 +59,7 @@ fun AppNavigator() {
             )
         }
 
+        // ✅ Admin login
         composable("admin_login") {
             AdminLoginScreen(
                 navController = navController,
@@ -63,18 +67,17 @@ fun AppNavigator() {
             )
         }
 
+        // ✅ Admin home
         composable("admin_home") {
             AdminScreen()
         }
 
-        composable("staff_home") {
-            StaffScreen()
-        }
-
+        // ✅ Customer landing page
         composable("landing") {
             LandingScreen(navController)
         }
 
+        // ✅ Appointment booking
         composable(
             route = "appointment/{service}",
             arguments = listOf(navArgument("service") { type = NavType.StringType })
@@ -83,12 +86,31 @@ fun AppNavigator() {
             AppointmentScreen(navController, service)
         }
 
+        // ✅ Slot booking screen
         composable("slots") {
             SlotScreen(navController)
         }
 
+        // ✅ Customer account/profile screen
         composable("account") {
             CustomerProfileScreen(navController)
+        }
+
+        // ✅ Notification page
+        composable("notifications") {
+            NotificationsScreen(navController)
+        }
+
+        // ✅ Staff home screen (dynamic route)
+        composable("staff_home/{staffName}") { backStackEntry ->
+            val staffName = backStackEntry.arguments?.getString("staffName") ?: "Unknown"
+            StaffScreen(staffName = staffName, navController = navController)
+        }
+
+        // ✅ Staff account screen (dynamic route)
+        composable("staff_account/{staffName}") { backStackEntry ->
+            val staffName = backStackEntry.arguments?.getString("staffName") ?: "Unknown"
+            StaffAccountScreen(staffName = staffName, navController = navController)
         }
     }
 }
