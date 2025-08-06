@@ -72,6 +72,8 @@ dependencies {
 
     implementation("androidx.compose.material:material-icons-extended")
     implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation("androidx.compose.material3:material3:<latest_version>")
+
 
 
 }
