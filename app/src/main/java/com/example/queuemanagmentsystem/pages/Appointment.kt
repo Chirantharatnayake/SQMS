@@ -92,7 +92,8 @@ fun AppointmentScreen(navController: NavController, selectedService: String = "A
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(WindowInsets.statusBars.asPaddingValues())
+                modifier = Modifier
+                    .padding(WindowInsets.statusBars.asPaddingValues())
                     .clickable { navController.navigate("landing") }
                     .padding(vertical = 8.dp)
             ) {
@@ -107,7 +108,10 @@ fun AppointmentScreen(navController: NavController, selectedService: String = "A
                 painter = painterResource(id = R.drawable.appointmentimg),
                 contentDescription = "Banner",
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxWidth().height(240.dp).clip(RoundedCornerShape(16.dp))
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(240.dp)
+                    .clip(RoundedCornerShape(16.dp))
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -116,23 +120,39 @@ fun AppointmentScreen(navController: NavController, selectedService: String = "A
                 text = selectedService,
                 fontSize = 16.sp,
                 color = Color.DarkGray,
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).background(Color(0xFFFFF3E0), RoundedCornerShape(12.dp)).padding(16.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+                    .background(Color(0xFFFFF3E0), RoundedCornerShape(12.dp))
+                    .padding(16.dp)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
             Text("Select Branch", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = red)
             Box(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).background(Color(0xFFFFF3E0), RoundedCornerShape(12.dp)).clickable { expanded = true }.padding(16.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+                    .background(Color(0xFFFFF3E0), RoundedCornerShape(12.dp))
+                    .clickable { expanded = true }
+                    .padding(16.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(if (selectedBranch.isEmpty()) "Select Branch" else selectedBranch, color = Color.DarkGray)
+                    Text(
+                        if (selectedBranch.isEmpty()) "Select Branch" else selectedBranch,
+                        color = Color.DarkGray
+                    )
                     Icon(Icons.Default.ArrowDropDown, contentDescription = "Dropdown Arrow", tint = Color.DarkGray)
                 }
-                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, modifier = Modifier.background(Color.White)) {
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.background(Color.White)
+                ) {
                     branchList.forEach { branch ->
                         DropdownMenuItem(text = { Text(branch) }, onClick = {
                             selectedBranch = branch
@@ -152,39 +172,71 @@ fun AppointmentScreen(navController: NavController, selectedService: String = "A
                     } else selectedDate.value = cal.time
                 }, today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH))
             }
-            Button(onClick = { datePickerDialog.show() }, modifier = Modifier.padding(vertical = 12.dp).fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = yellow)) {
+            Button(
+                onClick = { datePickerDialog.show() },
+                modifier = Modifier
+                    .padding(vertical = 12.dp)
+                    .fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = yellow)
+            ) {
                 Icon(Icons.Default.CalendarToday, contentDescription = null, tint = red)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Pick a Date", color = red)
             }
-            Text("Selected: ${dateFormat.format(selectedDate.value)}", fontSize = 14.sp, color = Color.DarkGray, modifier = Modifier.padding(bottom = 16.dp))
+            Text(
+                "Selected: ${dateFormat.format(selectedDate.value)}",
+                fontSize = 14.sp,
+                color = Color.DarkGray,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
 
             Text("Available Time Slots", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = red)
             Column {
                 timeSlots.chunked(2).forEach { rowSlots ->
-                    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                         rowSlots.forEach { slot ->
                             val isBooked = bookedSlots.contains(slot)
                             val isSelected = selectedSlot == slot
                             Box(
-                                modifier = Modifier.weight(1f).border(2.dp, when {
-                                    isBooked -> Color.Red
-                                    isSelected -> red
-                                    else -> yellow
-                                }, RoundedCornerShape(12.dp)).background(when {
-                                    isBooked -> Color(0xFFFFCDD2)
-                                    isSelected -> yellow
-                                    else -> Color(0xFFFFF8E1)
-                                }, RoundedCornerShape(12.dp)).clickable(enabled = !isBooked) {
-                                    selectedSlot = slot
-                                }.padding(vertical = 10.dp),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .border(
+                                        2.dp,
+                                        when {
+                                            isBooked -> Color.Red
+                                            isSelected -> red
+                                            else -> yellow
+                                        },
+                                        RoundedCornerShape(12.dp)
+                                    )
+                                    .background(
+                                        when {
+                                            isBooked -> Color(0xFFFFCDD2)
+                                            isSelected -> yellow
+                                            else -> Color(0xFFFFF8E1)
+                                        },
+                                        RoundedCornerShape(12.dp)
+                                    )
+                                    .clickable(enabled = !isBooked) {
+                                        selectedSlot = slot
+                                    }
+                                    .padding(vertical = 10.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(slot, fontWeight = FontWeight.Medium, color = when {
-                                    isBooked -> Color.Red
-                                    isSelected -> red
-                                    else -> Color.Black
-                                })
+                                Text(
+                                    slot,
+                                    fontWeight = FontWeight.Medium,
+                                    color = when {
+                                        isBooked -> Color.Red
+                                        isSelected -> red
+                                        else -> Color.Black
+                                    }
+                                )
                             }
                         }
                         if (rowSlots.size < 2) Spacer(modifier = Modifier.weight(1f))
@@ -211,25 +263,55 @@ fun AppointmentScreen(navController: NavController, selectedService: String = "A
                                 if (!docs.isEmpty) {
                                     Toast.makeText(context, "Slot already booked!", Toast.LENGTH_SHORT).show()
                                 } else {
-                                    val appointment = hashMapOf(
-                                        "uid" to uid,
-                                        "orderId" to orderId,
-                                        "token" to token,
-                                        "branch" to branchCode,
-                                        "branchName" to selectedBranch,
-                                        "date" to formattedDate,
-                                        "slot" to selectedSlot,
-                                        "service" to selectedService,
-                                        "staff" to "To Be Assigned",
-                                        "timestamp" to System.currentTimeMillis()
-                                    )
-                                    firestore.collection("appointments").add(appointment)
-                                        .addOnSuccessListener {
-                                            Toast.makeText(context, "Appointment Confirmed!", Toast.LENGTH_SHORT).show()
-                                            navController.navigate("slots")
+                                    firestore.collection("staff")
+                                        .whereEqualTo("branchCode", branchCode)
+                                        .get()
+                                        .addOnSuccessListener { staffDocs ->
+                                            val matchingStaff = staffDocs.firstOrNull {
+                                                val staffBranch = it.getString("branchCode")?.trim() ?: ""
+                                                val staffService = it.getString("serviceType")?.trim() ?: ""
+                                                staffBranch == branchCode &&
+                                                        staffService.equals(selectedService, ignoreCase = true)
+                                            }
+
+                                            if (matchingStaff != null) {
+                                                val staffName = matchingStaff.getString("staffName") ?: "Not Assigned"
+
+                                                firestore.collection("users").document(uid).get()
+                                                    .addOnSuccessListener { userDoc ->
+                                                        val username = userDoc.getString("username") ?: "Unknown"
+                                                        val phone = userDoc.getString("phone") ?: "N/A"
+
+                                                        val appointment = hashMapOf(
+                                                            "uid" to uid,
+                                                            "orderId" to orderId,
+                                                            "token" to token,
+                                                            "branch" to branchCode,
+                                                            "branchName" to selectedBranch,
+                                                            "date" to formattedDate,
+                                                            "slot" to selectedSlot,
+                                                            "service" to selectedService,
+                                                            "staffName" to staffName,
+                                                            "customerName" to username,
+                                                            "customerPhone" to phone,
+                                                            "timestamp" to System.currentTimeMillis()
+                                                        )
+
+                                                        firestore.collection("appointments").add(appointment)
+                                                            .addOnSuccessListener {
+                                                                Toast.makeText(context, "Appointment Confirmed!", Toast.LENGTH_SHORT).show()
+                                                                navController.navigate("slots")
+                                                            }
+                                                            .addOnFailureListener {
+                                                                Toast.makeText(context, "Booking failed!", Toast.LENGTH_SHORT).show()
+                                                            }
+                                                    }
+                                            } else {
+                                                Toast.makeText(context, "Matching staff not found", Toast.LENGTH_SHORT).show()
+                                            }
                                         }
                                         .addOnFailureListener {
-                                            Toast.makeText(context, "Booking failed!", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(context, "Error fetching staff", Toast.LENGTH_SHORT).show()
                                         }
                                 }
                             }
@@ -237,7 +319,9 @@ fun AppointmentScreen(navController: NavController, selectedService: String = "A
                         Toast.makeText(context, "Select branch and time slot", Toast.LENGTH_SHORT).show()
                     }
                 },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
                 shape = RoundedCornerShape(32.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = red)
             ) {
@@ -247,6 +331,7 @@ fun AppointmentScreen(navController: NavController, selectedService: String = "A
             Spacer(modifier = Modifier.height(24.dp))
         }
 
+        // Bottom Navigation Bar
         Box(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()) {
             BottomNavBar(
                 selectedTab = selectedTab,
