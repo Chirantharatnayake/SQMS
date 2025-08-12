@@ -1,3 +1,4 @@
+// File: MainActivity.kt
 package com.example.queuemanagmentsystem
 
 import android.os.Bundle
@@ -69,7 +70,7 @@ fun AppNavigator() {
 
         // ✅ Admin home
         composable("admin_home") {
-            AdminScreen()
+            AdminScreen(navController = navController) // <-- updated to pass navController
         }
 
         // ✅ Customer landing page
