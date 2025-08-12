@@ -22,6 +22,7 @@ import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.example.queuemanagmentsystem.SharedPrefernces.AppPreferences // ✅ import
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,7 +56,7 @@ fun SlotScreen(navController: NavController) {
                 isLoading = false
             }
 
-        // Always check for latest notification
+        // ✅ Red dot logic using AppPreferences
         firestore.collection("notifications")
             .whereEqualTo("uid", uid)
             .orderBy("timestamp", Query.Direction.DESCENDING)
@@ -64,10 +65,15 @@ fun SlotScreen(navController: NavController) {
             .addOnSuccessListener { notifDocs ->
                 val latest = notifDocs.firstOrNull()
                 val msg = latest?.getString("message")
-                if (!msg.isNullOrEmpty()) {
+                val latestTs = (latest?.get("timestamp") as? com.google.firebase.Timestamp)?.toDate()?.time ?: 0L
+                val lastSeenTs = AppPreferences.getLastSeenNotificationTimestamp(context)
+
+                if (!msg.isNullOrEmpty() && latestTs > lastSeenTs) {
                     notifications.clear()
                     notifications.add(msg)
                     showNotification = true
+                } else {
+                    showNotification = false
                 }
             }
     }
@@ -215,4 +221,3 @@ fun SlotScreen(navController: NavController) {
         }
     }
 }
-
