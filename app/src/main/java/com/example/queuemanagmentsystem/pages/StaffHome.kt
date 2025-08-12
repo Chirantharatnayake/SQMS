@@ -31,13 +31,18 @@ data class Appointment(
     val id: String = "",
     val service: String = "",
     val date: String = "",
+    // We show "time" in UI. Firestore stores "slot", so we will set time = slot when loading.
     val time: String = "",
     val token: String = "",
-    val customerUid: String = "",
+    val customerUid: String = "",   // some docs may store this as "uid"; we handle both
     val branch: String = "",
     val staffName: String = "",
     val branchName: String = "",
-    val orderId: String = ""
+    val orderId: String = "",
+    val uid: String = "",           // keep original uid field too (for compatibility)
+    // >>> Pulled straight from Firestore so the card shows immediately
+    val customerName: String = "",
+    val customerPhone: String = ""
 )
 
 data class StaffMember(
@@ -213,27 +218,39 @@ fun StaffScreen(staffName: String, navController: NavController) {
     val customerDetailsMap = remember { mutableStateMapOf<String, Pair<String, String>>() }
 
     fun cancelAppointment(appt: Appointment) {
-        firestore.collection("appointments").document(appt.id).delete().addOnSuccessListener {
-            staffAppointments.remove(appt)
+        firestore.collection("appointments").document(appt.id).get().addOnSuccessListener { document ->
+            val uidFromDoc = document.getString("uid")
+            val uidFromDocAlt = document.getString("customerUid")
+            val uidFinal = uidFromDoc ?: uidFromDocAlt ?: appt.customerUid.ifEmpty { appt.uid }
 
-            val customerUid = appt.customerUid
-            if (customerUid.isNotEmpty()) {
-                firestore.collection("notifications").add(
-                    mapOf(
-                        "uid" to customerUid,
+            firestore.collection("appointments").document(appt.id).delete().addOnSuccessListener {
+                staffAppointments.remove(appt)
+
+                if (uidFinal.isNotEmpty()) {
+                    val notificationData = hashMapOf(
+                        "uid" to uidFinal,
                         "message" to "Your appointment on ${appt.date} at ${appt.time} has been canceled by staff.",
                         "timestamp" to Timestamp.now()
                     )
-                )
+                    firestore.collection("notifications").add(notificationData)
+                        .addOnSuccessListener {
+                            Toast.makeText(context, "Appointment canceled and notification sent", Toast.LENGTH_SHORT).show()
+                        }
+                        .addOnFailureListener {
+                            Toast.makeText(context, "Appointment canceled but failed to send notification", Toast.LENGTH_SHORT).show()
+                        }
+                } else {
+                    Toast.makeText(context, "Appointment canceled but UID missing", Toast.LENGTH_SHORT).show()
+                }
             }
-
-            Toast.makeText(context, "Appointment canceled", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener {
+            Toast.makeText(context, "Failed to fetch appointment: ${it.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
     fun completeAppointment(appt: Appointment) {
         val completedData = hashMapOf(
-            "uid" to appt.customerUid,
+            "uid" to appt.customerUid.ifEmpty { appt.uid },
             "orderId" to appt.orderId,
             "token" to appt.token,
             "branch" to appt.branch,
@@ -270,33 +287,49 @@ fun StaffScreen(staffName: String, navController: NavController) {
         firestore.collection("appointments")
             .whereEqualTo("staffName", staff.staffName)
             .get().addOnSuccessListener { docs ->
-                pendingLookups = docs.size()
+                pendingLookups = 0 // no extra lookups now
                 for (doc in docs) {
-                    val appt = doc.toObject(Appointment::class.java).copy(id = doc.id)
+                    // Build with explicit field fixes (slot -> time, uid variants, name/phone)
+                    val appt = doc.toObject(Appointment::class.java).copy(
+                        id = doc.id,
+                        time = doc.getString("slot") ?: (doc.getString("time") ?: ""),
+                        customerName = doc.getString("customerName") ?: "",
+                        customerPhone = doc.getString("customerPhone") ?: "",
+                        customerUid = doc.getString("customerUid") ?: (doc.getString("uid") ?: ""),
+                        uid = doc.getString("uid") ?: ""
+                    )
                     staffAppointments.add(appt)
-                    val uid = appt.customerUid
-                    if (uid.isNotEmpty()) {
-                        firestore.collection("users").document(uid).get()
-                            .addOnSuccessListener { userDoc ->
-                                customerDetailsMap[uid] = Pair(
-                                    userDoc.getString("username") ?: "Unknown",
-                                    userDoc.getString("phone") ?: "N/A"
-                                )
-                            }.addOnCompleteListener {
-                                pendingLookups--
-                                if (pendingLookups <= 0) isLoading = false
-                            }
-                    } else pendingLookups--
+
+                    val pair = Pair(
+                        appt.customerName.ifEmpty { "Unknown" },
+                        appt.customerPhone.ifEmpty { "N/A" }
+                    )
+                    if (appt.customerUid.isNotEmpty()) customerDetailsMap[appt.customerUid] = pair
+                    if (appt.uid.isNotEmpty()) customerDetailsMap[appt.uid] = pair
                 }
-                if (pendingLookups == 0) isLoading = false
+                isLoading = false
             }
 
         firestore.collection("completed_appointments")
             .whereEqualTo("staffName", staff.staffName)
             .get().addOnSuccessListener { docs ->
                 for (doc in docs) {
-                    val appt = doc.toObject(Appointment::class.java).copy(id = doc.id)
+                    val appt = doc.toObject(Appointment::class.java).copy(
+                        id = doc.id,
+                        time = doc.getString("slot") ?: (doc.getString("time") ?: ""),
+                        customerName = doc.getString("customerName") ?: "",
+                        customerPhone = doc.getString("customerPhone") ?: "",
+                        customerUid = doc.getString("customerUid") ?: (doc.getString("uid") ?: ""),
+                        uid = doc.getString("uid") ?: ""
+                    )
                     completedAppointments.add(appt)
+
+                    val pair = Pair(
+                        appt.customerName.ifEmpty { "Completed" },
+                        appt.customerPhone.ifEmpty { "N/A" }
+                    )
+                    if (appt.customerUid.isNotEmpty()) customerDetailsMap[appt.customerUid] = pair
+                    if (appt.uid.isNotEmpty()) customerDetailsMap[appt.uid] = pair
                 }
             }
     }
@@ -344,7 +377,7 @@ fun StaffScreen(staffName: String, navController: NavController) {
             Spacer(modifier = Modifier.height(12.dp))
 
             currentStaff?.let { staff ->
-                Text("Hello, ${staff.staffName}", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = red, modifier = Modifier.align(Alignment.CenterHorizontally))
+                Text("Hello, ${staff.staffName}", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color(0xFFC62828), modifier = Modifier.align(Alignment.CenterHorizontally))
                 Text(staff.serviceType, fontSize = 14.sp, color = Color.Gray, modifier = Modifier.align(Alignment.CenterHorizontally))
                 Text("Branch: ${staff.branchCode}", fontSize = 14.sp, color = Color.Gray, modifier = Modifier.align(Alignment.CenterHorizontally))
             }
@@ -356,20 +389,20 @@ fun StaffScreen(staffName: String, navController: NavController) {
 
             if (isLoading) {
                 Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = red)
+                    CircularProgressIndicator(color = Color(0xFFC62828))
                 }
             } else if (staffAppointments.isEmpty()) {
                 Text("No upcoming appointments.", color = Color.Gray, modifier = Modifier.align(Alignment.CenterHorizontally))
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
                     items(staffAppointments) { appt ->
-                        val customer = customerDetailsMap[appt.customerUid]
+                        val customer = customerDetailsMap[appt.customerUid.ifEmpty { appt.uid }]
                         AppointmentCardStyled(
-                            name = customer?.first ?: "Loading...",
-                            phone = customer?.second ?: "Loading...",
+                            name = customer?.first ?: appt.customerName.ifEmpty { "Loading..." },
+                            phone = customer?.second ?: appt.customerPhone.ifEmpty { "Loading..." },
                             appointment = appt,
                             yellow = yellow,
-                            red = red,
+                            red = Color(0xFFC62828),
                             green = green,
                             onCancel = { cancelAppointment(appt) },
                             onComplete = { completeAppointment(appt) }
@@ -384,12 +417,13 @@ fun StaffScreen(staffName: String, navController: NavController) {
                 Spacer(modifier = Modifier.height(12.dp))
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
                     items(completedAppointments) { appt ->
+                        val customer = customerDetailsMap[appt.customerUid.ifEmpty { appt.uid }]
                         AppointmentCardStyled(
-                            name = customerDetailsMap[appt.customerUid]?.first ?: "Completed",
-                            phone = customerDetailsMap[appt.customerUid]?.second ?: "N/A",
+                            name = customer?.first ?: appt.customerName.ifEmpty { "Completed" },
+                            phone = customer?.second ?: appt.customerPhone.ifEmpty { "N/A" },
                             appointment = appt,
                             yellow = yellow,
-                            red = red,
+                            red = Color(0xFFC62828),
                             green = green,
                             isCompleted = true,
                             onDeleteCompleted = { deleteCompleted(appt) }
