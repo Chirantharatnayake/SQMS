@@ -217,6 +217,10 @@ fun StaffScreen(staffName: String, navController: NavController) {
     val completedAppointments = remember { mutableStateListOf<Appointment>() }
     val customerDetailsMap = remember { mutableStateMapOf<String, Pair<String, String>>() }
 
+    // === NEW: confirmation dialog state for cancel ===
+    var showCancelDialog by remember { mutableStateOf(false) }
+    var apptToCancel by remember { mutableStateOf<Appointment?>(null) }
+
     fun cancelAppointment(appt: Appointment) {
         firestore.collection("appointments").document(appt.id).get().addOnSuccessListener { document ->
             val uidFromDoc = document.getString("uid")
@@ -404,7 +408,11 @@ fun StaffScreen(staffName: String, navController: NavController) {
                             yellow = yellow,
                             red = Color(0xFFC62828),
                             green = green,
-                            onCancel = { cancelAppointment(appt) },
+                            onCancel = {
+                                // NEW: trigger confirmation dialog
+                                apptToCancel = appt
+                                showCancelDialog = true
+                            },
                             onComplete = { completeAppointment(appt) }
                         )
                     }
@@ -441,6 +449,41 @@ fun StaffScreen(staffName: String, navController: NavController) {
                         "Home" -> navController.navigate("staff_home/$staffName")
                         "Account" -> navController.navigate("staff_account/$staffName")
                     }
+                }
+            )
+        }
+
+        // === NEW: Confirmation AlertDialog ===
+        if (showCancelDialog && apptToCancel != null) {
+            val a = apptToCancel!!
+            AlertDialog(
+                onDismissRequest = {
+                    showCancelDialog = false
+                    apptToCancel = null
+                },
+                title = { Text("Cancel appointment?") },
+                text = {
+                    Text(
+                        "Are you sure you want to cancel this appointment?\n\n" +
+                                "Service: ${a.service}\nDate: ${a.date}\nTime: ${a.time}\nToken: ${a.token}"
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            cancelAppointment(a)
+                            showCancelDialog = false
+                            apptToCancel = null
+                        }
+                    ) { Text("Yes") }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            showCancelDialog = false
+                            apptToCancel = null
+                        }
+                    ) { Text("No") }
                 }
             )
         }
