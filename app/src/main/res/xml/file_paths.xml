@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Allow sharing cached images created for profile camera captures -->
+    <cache-path name="camera_cache" path="." />
+    <!-- Optional external app-specific pictures directory support -->
+    <external-files-path name="pictures" path="Pictures" />
+</paths>
+
