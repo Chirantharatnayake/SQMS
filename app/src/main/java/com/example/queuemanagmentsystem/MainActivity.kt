@@ -5,9 +5,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -19,6 +23,7 @@ import com.example.queuemanagementapp.ui.screens.StaffScreen
 import com.example.queuemanagementapp.ui.screens.StaffAccountScreen
 import com.example.queuemanagmentsystem.pages.*
 import com.example.queuemanagmentsystem.ui.theme.QueueManagmentSystemTheme
+import com.example.queuemanagmentsystem.ui.theme.LocalAppDarkMode
 import com.google.firebase.FirebaseApp
 
 class MainActivity : ComponentActivity() {
@@ -29,9 +34,16 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            QueueManagmentSystemTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    AppNavigator()
+            val systemDark = isSystemInDarkTheme()
+            val darkMode = rememberSaveable { mutableStateOf(systemDark) }
+            QueueManagmentSystemTheme(darkTheme = darkMode.value) {
+                CompositionLocalProvider(LocalAppDarkMode provides darkMode.value) {
+                    Surface(modifier = Modifier.fillMaxSize()) {
+                        AppNavigator(
+                            darkMode = darkMode.value,
+                            onSetDarkMode = { darkMode.value = it }
+                        )
+                    }
                 }
             }
         }
@@ -39,12 +51,15 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppNavigator() {
+fun AppNavigator(
+    darkMode: Boolean,
+    onSetDarkMode: (Boolean) -> Unit
+) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "register") {
 
-        // ✅ Register screen
+        // Register screen
         composable("register") {
             RegisterScreen(
                 navToLogin = { navController.navigate("login") },
@@ -52,7 +67,7 @@ fun AppNavigator() {
             )
         }
 
-        // ✅ Login screen
+        // Login screen
         composable("login") {
             LoginScreen(
                 navToRegister = { navController.navigate("register") },
@@ -60,7 +75,7 @@ fun AppNavigator() {
             )
         }
 
-        // ✅ Admin login
+        // Admin login
         composable("admin_login") {
             AdminLoginScreen(
                 navController = navController,
@@ -68,17 +83,17 @@ fun AppNavigator() {
             )
         }
 
-        // ✅ Admin home
+        // Admin home
         composable("admin_home") {
             AdminScreen(navController = navController) // <-- updated to pass navController
         }
 
-        // ✅ Customer landing page
+        // Customer landing page
         composable("landing") {
             LandingScreen(navController)
         }
 
-        // ✅ Appointment booking
+        // Appointment booking
         composable(
             route = "appointment/{service}",
             arguments = listOf(navArgument("service") { type = NavType.StringType })
@@ -87,28 +102,32 @@ fun AppNavigator() {
             AppointmentScreen(navController, service)
         }
 
-        // ✅ Slot booking screen
+        // Slot booking screen
         composable("slots") {
             SlotScreen(navController)
         }
 
-        // ✅ Customer account/profile screen
+        //  Customer account/profile screen
         composable("account") {
-            CustomerProfileScreen(navController)
+            CustomerProfileScreen(
+                navController = navController,
+                darkMode = darkMode,
+                onToggleDark = { onSetDarkMode(it) }
+            )
         }
 
-        // ✅ Notification page
+        //  Notification page
         composable("notifications") {
             NotificationsScreen(navController)
         }
 
-        // ✅ Staff home screen (dynamic route)
+        // Staff home screen (dynamic route)
         composable("staff_home/{staffName}") { backStackEntry ->
             val staffName = backStackEntry.arguments?.getString("staffName") ?: "Unknown"
             StaffScreen(staffName = staffName, navController = navController)
         }
 
-        // ✅ Staff account screen (dynamic route)
+        //  Staff account screen (dynamic route)
         composable("staff_account/{staffName}") { backStackEntry ->
             val staffName = backStackEntry.arguments?.getString("staffName") ?: "Unknown"
             StaffAccountScreen(staffName = staffName, navController = navController)
