@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -49,6 +50,7 @@ fun StaffAccountScreen(staffName: String, navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
+            .testTag("staffAccountScreen")
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -56,6 +58,7 @@ fun StaffAccountScreen(staffName: String, navController: NavController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = 64.dp, bottom = 72.dp)
+                .testTag("staffAccountContent")
         ) {
             // Profile image
             Image(
@@ -65,6 +68,7 @@ fun StaffAccountScreen(staffName: String, navController: NavController) {
                     .size(100.dp)
                     .clip(CircleShape)
                     .background(Color.LightGray)
+                    .testTag("staffProfileImage")
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -73,19 +77,21 @@ fun StaffAccountScreen(staffName: String, navController: NavController) {
             Text(
                 text = staff?.staffName ?: "Loading...",
                 fontSize = 22.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.testTag("staffAccountName")
             )
 
             // Branch code
             Text(
                 text = "Branch Code: ${staff?.branchCode ?: "Loading..."}",
                 fontSize = 14.sp,
-                color = Color.Gray
+                color = Color.Gray,
+                modifier = Modifier.testTag("staffAccountBranchCode")
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // 🔴 Logout Button
+            // Logout Button
             Button(
                 onClick = {
                     navController.navigate("admin_login") {
@@ -96,6 +102,7 @@ fun StaffAccountScreen(staffName: String, navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
                     .height(50.dp)
+                    .testTag("staffLogoutButton")
             ) {
                 Text("Logout", color = Color.White, fontSize = 16.sp)
             }
@@ -106,6 +113,7 @@ fun StaffAccountScreen(staffName: String, navController: NavController) {
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
+                .testTag("staffAccountBottomNav")
         ) {
             StaffBottomNavBar(
                 selectedTab = "Account",

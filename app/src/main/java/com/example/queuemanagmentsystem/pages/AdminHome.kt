@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -154,7 +155,8 @@ fun AdminScreen(navController: NavController) {
                                 text = label,
                                 color = if (selectedIndex == index) Color.Red else Color.Black
                             )
-                        }
+                        },
+                        modifier = Modifier.testTag("navItem_$label")
                     )
                 }
             }
@@ -168,6 +170,7 @@ fun AdminScreen(navController: NavController) {
                     .verticalScroll(rememberScrollState())
                     .background(Color.White)
                     .padding(16.dp)
+                    .testTag("adminHomeContent")
             ) {
                 Spacer(modifier = Modifier.height(48.dp))
 
@@ -191,7 +194,7 @@ fun AdminScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Text("Add Staff Member", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                Text("Add Staff Member", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.testTag("addStaffTitle"))
 
                 OutlinedTextField(
                     value = branchCode,
@@ -200,13 +203,14 @@ fun AdminScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 12.dp)
+                        .testTag("branchCodeField")
                 )
 
                 Text(
                     "Staff ID: $staffId",
                     fontSize = 16.sp,
                     color = Color.Gray,
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(top = 8.dp).testTag("staffIdDisplay")
                 )
 
                 OutlinedTextField(
@@ -216,6 +220,7 @@ fun AdminScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp)
+                        .testTag("staffNameField")
                 )
 
                 ExposedDropdownMenuBox(
@@ -224,6 +229,7 @@ fun AdminScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp)
+                        .testTag("serviceTypeDropdown")
                 ) {
                     OutlinedTextField(
                         value = serviceType,
@@ -234,6 +240,7 @@ fun AdminScreen(navController: NavController) {
                         modifier = Modifier
                             .menuAnchor()
                             .fillMaxWidth()
+                            .testTag("serviceTypeField")
                     )
                     ExposedDropdownMenu(
                         expanded = expanded,
@@ -245,7 +252,8 @@ fun AdminScreen(navController: NavController) {
                                 onClick = {
                                     serviceType = it
                                     expanded = false
-                                }
+                                },
+                                modifier = Modifier.testTag("serviceOption_$it")
                             )
                         }
                     }
@@ -257,7 +265,7 @@ fun AdminScreen(navController: NavController) {
                     label = { Text("Password") },
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }, modifier = Modifier.testTag("passwordToggle")) {
                             Icon(
                                 if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
                                 contentDescription = null
@@ -267,6 +275,7 @@ fun AdminScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp)
+                        .testTag("passwordField")
                 )
 
                 Button(
@@ -304,14 +313,15 @@ fun AdminScreen(navController: NavController) {
                     },
                     modifier = Modifier
                         .align(Alignment.End)
-                        .padding(top = 12.dp),
+                        .padding(top = 12.dp)
+                        .testTag("addStaffButton"),
                     colors = ButtonDefaults.buttonColors(containerColor = red)
                 ) {
                     Text("Add Staff", color = Color.White)
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
-                Text("Registered Staff Members", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = red)
+                Text("Registered Staff Members", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = red, modifier = Modifier.testTag("staffListTitle"))
 
                 OutlinedTextField(
                     value = staffSearch,
@@ -320,6 +330,7 @@ fun AdminScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
+                        .testTag("staffSearchField")
                 )
 
                 staffList.filter {
@@ -354,7 +365,7 @@ fun AdminScreen(navController: NavController) {
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
-                Text("Registered Customers", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = red)
+                Text("Registered Customers", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = red, modifier = Modifier.testTag("customerListTitle"))
 
                 OutlinedTextField(
                     value = userSearch,
@@ -363,6 +374,7 @@ fun AdminScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
+                        .testTag("customerSearchField")
                 )
 
                 userList.filter {
@@ -406,11 +418,12 @@ fun AdminScreen(navController: NavController) {
                         TextButton(onClick = {
                             deleteStaff(staffIdToDelete)
                             openDeleteStaffDialog = false
-                        }) { Text("Yes") }
+                        }, modifier = Modifier.testTag("confirmDeleteStaff")) { Text("Yes") }
                     },
                     dismissButton = {
-                        TextButton(onClick = { openDeleteStaffDialog = false }) { Text("No") }
-                    }
+                        TextButton(onClick = { openDeleteStaffDialog = false }, modifier = Modifier.testTag("cancelDeleteStaff")) { Text("No") }
+                    },
+                    modifier = Modifier.testTag("deleteStaffDialog")
                 )
             }
 
@@ -423,11 +436,12 @@ fun AdminScreen(navController: NavController) {
                         TextButton(onClick = {
                             deleteUserByEmail(userEmailToDelete)
                             openDeleteUserDialog = false
-                        }) { Text("Yes") }
+                        }, modifier = Modifier.testTag("confirmDeleteUser")) { Text("Yes") }
                     },
                     dismissButton = {
-                        TextButton(onClick = { openDeleteUserDialog = false }) { Text("No") }
-                    }
+                        TextButton(onClick = { openDeleteUserDialog = false }, modifier = Modifier.testTag("cancelDeleteUser")) { Text("No") }
+                    },
+                    modifier = Modifier.testTag("deleteUserDialog")
                 )
             }
         } else {

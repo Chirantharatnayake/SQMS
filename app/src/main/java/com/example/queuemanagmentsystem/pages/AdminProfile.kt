@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -30,7 +31,8 @@ fun AdminAccountScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .padding(24.dp),
+            .padding(24.dp)
+            .testTag("adminProfileScreen"),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(40.dp))
@@ -39,7 +41,8 @@ fun AdminAccountScreen(navController: NavController) {
             text = "Admin Profile",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = red
+            color = red,
+            modifier = Modifier.testTag("adminProfileTitle")
         )
 
         Spacer(modifier = Modifier.height(30.dp))
@@ -49,7 +52,8 @@ fun AdminAccountScreen(navController: NavController) {
             modifier = Modifier
                 .size(120.dp)
                 .clip(CircleShape)
-                .background(Color.LightGray),
+                .background(Color.LightGray)
+                .testTag("adminProfileImage"),
             contentAlignment = Alignment.Center
         ) {
             Image(
@@ -61,9 +65,18 @@ fun AdminAccountScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Text("Admin ID: $adminId", fontSize = 18.sp)
+        Text(
+            "Admin ID: $adminId",
+            fontSize = 18.sp,
+            modifier = Modifier.testTag("adminIdText")
+        )
         Spacer(modifier = Modifier.height(10.dp))
-        Text("Welcome back, Admin!", fontSize = 16.sp, color = Color.Gray)
+        Text(
+            "Welcome back, Admin!",
+            fontSize = 16.sp,
+            color = Color.Gray,
+            modifier = Modifier.testTag("adminWelcomeText")
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -79,7 +92,9 @@ fun AdminAccountScreen(navController: NavController) {
                 }
             },
             colors = ButtonDefaults.buttonColors(containerColor = red),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("adminLogoutButton")
         ) {
             Text("Log out", color = Color.White)
         }
