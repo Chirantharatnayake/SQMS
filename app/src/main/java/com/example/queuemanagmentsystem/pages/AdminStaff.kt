@@ -2,6 +2,7 @@ package com.example.queuemanagmentsystem.pages
 
 import android.util.Log
 import android.widget.Toast
+import android.net.Uri
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -368,7 +369,8 @@ fun AdminLoginScreen(navController: NavHostController, onBack: () -> Unit) {
                                                     val staffName = user.getString("staffName") ?: "Unknown"
                                                     Log.d("LOGIN_SUCCESS", "Staff Login Successful - Name: $staffName, ID: $adminOrStaffId, Branch: $branchCode")
                                                     Toast.makeText(context, "Staff Login Successful", Toast.LENGTH_SHORT).show()
-                                                    navController.navigate("staff_home/${staffName}")
+                                                    val encoded = Uri.encode(staffName)
+                                                    navController.navigate("staff_home/$encoded")
                                                     return@addOnSuccessListener
                                                 } else {
                                                     Toast.makeText(context, "Incorrect Password", Toast.LENGTH_SHORT).show()
