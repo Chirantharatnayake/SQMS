@@ -1,6 +1,7 @@
 // File: MainActivity.kt
 package com.example.queuemanagmentsystem
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,8 +20,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.queuemanagementapp.ui.screens.AdminScreen
-import com.example.queuemanagementapp.ui.screens.StaffScreen
-import com.example.queuemanagementapp.ui.screens.StaffAccountScreen
 import com.example.queuemanagmentsystem.pages.*
 import com.example.queuemanagmentsystem.ui.theme.QueueManagmentSystemTheme
 import com.example.queuemanagmentsystem.ui.theme.LocalAppDarkMode
@@ -85,7 +84,7 @@ fun AppNavigator(
 
         // Admin home
         composable("admin_home") {
-            AdminScreen(navController = navController) // <-- updated to pass navController
+            AdminScreen(navController = navController)
         }
 
         // Customer landing page
@@ -121,16 +120,24 @@ fun AppNavigator(
             NotificationsScreen(navController)
         }
 
-        // Staff home screen (dynamic route)
-        composable("staff_home/{staffName}") { backStackEntry ->
-            val staffName = backStackEntry.arguments?.getString("staffName") ?: "Unknown"
-            StaffScreen(staffName = staffName, navController = navController)
+        // Staff home screen
+        composable(
+            route = "staff_home/{staffName}",
+            arguments = listOf(navArgument("staffName") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val staffNameArg = backStackEntry.arguments?.getString("staffName") ?: ""
+            val decodedName = Uri.decode(staffNameArg)
+            StaffScreen(staffName = decodedName, navController = navController)
         }
 
-        //  Staff account screen (dynamic route)
-        composable("staff_account/{staffName}") { backStackEntry ->
-            val staffName = backStackEntry.arguments?.getString("staffName") ?: "Unknown"
-            StaffAccountScreen(staffName = staffName, navController = navController)
+        // Staff account screen
+        composable(
+            route = "staff_account/{staffName}",
+            arguments = listOf(navArgument("staffName") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val staffNameArg = backStackEntry.arguments?.getString("staffName") ?: ""
+            val decodedName = Uri.decode(staffNameArg)
+            StaffAccountScreen(staffName = decodedName, navController = navController)
         }
     }
 }
